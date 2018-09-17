@@ -3,7 +3,7 @@
 #include <string>
 #include <ctime>
 
-#include "fast-cpp-csv-parser/csv.h"
+#include "../fast-cpp-csv-parser/csv.h"
 
 std::random_device device;
 std::mt19937 twister {device()};
