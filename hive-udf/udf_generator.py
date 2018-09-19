@@ -1,4 +1,7 @@
-import pandas, os
+import pandas
+import os
+import numpy as np
+import utils
 
 
 def convert():
@@ -17,12 +20,6 @@ def convert():
 
     all = ip.join(ff, on="id", how="left")[["code", "name"]]
     all.to_csv("geolite-ip-country.csv")
-
-
-
-
-import numpy as np
-import utils
 
 
 template = """#!/usr/bin/env python
@@ -50,12 +47,14 @@ def pack_ip_data(filename):
 
 
 def generate_ip_udf(udf_source_filename, geo_ip_filename, output_filename):
-    with open("hive-udf/utils.py", "r") as file:
+    with open("utils.py", "r") as file:
         utils_source = file.read()
     with open(udf_source_filename, "r") as file:
         udf_source = file.read().replace("from utils import *", '')
 
     ips, nms, nid = pack_ip_data(geo_ip_filename)
+
+    nid = dict(x[::-1] for x in nid.items())
 
     rendered = template.format(
         utils=utils_source,
@@ -75,9 +74,11 @@ def generate_ip_udf(udf_source_filename, geo_ip_filename, output_filename):
         file.write(b"''')\n")
         file.write(b"main()\n")
 
+    print("UDF generated. (size ~ %.3f MiB)" % (os.stat(output_filename).st_size / 2**20,))
+
 
 generate_ip_udf(
-    "hive-udf/udf_ip.py",
-    "~/test-geo.csv",
-    "gen/udf_ip_to_location.py"
+    udf_source_filename="udf_ip.py",
+    geo_ip_filename="~/GeoLite_Network2Country_Numerical.csv",
+    output_filename="../gen/udf_ip_to_location.py"
 )
