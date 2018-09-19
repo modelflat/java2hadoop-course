@@ -3,3 +3,6 @@
 *.out
 *.log
 *.bin
+
+gen/
+__pycache__/

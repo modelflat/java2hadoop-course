@@ -10,7 +10,7 @@ std::mt19937 twister {device()};
 
 
 inline uint32_t makeIp() {
-	static std::uniform_int_distribution<uint32_t> uniform { 0x01000000, 0xfeffffff };
+	static std::uniform_int_distribution<uint32_t> uniform { 0x01000000, 0xdfffffff };
 	return uniform(twister);
 }
 
