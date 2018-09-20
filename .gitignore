@@ -6,3 +6,6 @@
 
 gen/
 __pycache__/
+
+*.class
+*.jar

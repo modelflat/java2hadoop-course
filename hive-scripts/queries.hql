@@ -2,7 +2,7 @@ SET hive.cli.print.header = true;
 SET hive.execution.engine = spark;
 
 -- Register our udf (we will need it later)
-ADD FILE /udf_ip_to_location.py;
+ADD FILE '/udf_ip_to_location.py';
 
 -- Create table from flume events
 CREATE EXTERNAL TABLE purchases(
@@ -12,6 +12,15 @@ CREATE EXTERNAL TABLE purchases(
     ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
     STORED AS SEQUENCEFILE
     LOCATION '/flume/events/'
+;
+
+-- Create table from flume events (s3)
+CREATE EXTERNAL TABLE purchases(
+        date_ STRING, ip STRING, category STRING, name STRING, price FLOAT, year_ INT, month_ INT, day_ INT
+    )
+    ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
+    STORED AS TEXTFILE
+    LOCATION 's3://aelistratov-lpfinal-project/events'
 ;
 
 -- No need to add partitions manually due to our flume.conf :)
