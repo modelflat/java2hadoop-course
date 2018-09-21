@@ -4,22 +4,21 @@ import numpy as np
 import utils
 
 
-def convert():
-    ff = pandas.concat([pandas.read_csv("Downloads/GeoLite2-Country-CSV_20180911/" + n)
-                        for n in filter(lambda x: "csv" in x and "Locations" in x,
-                                        os.listdir("Downloads/GeoLite2-Country-CSV_20180911"))])
+def convert(path):
+    ff = pandas.concat([
+        pandas.read_csv(os.path.join(path, n))
+        for n in filter(lambda x: "csv" in x and "Locations" in x, os.listdir(path))
+    ])
     ff = ff[(ff.locale_code == "en") & ~ff.country_iso_code.isna()]\
         .rename(columns={"geoname_id": "id", "country_iso_code": "code", "country_name": "name"})\
         [["id", "code", "name"]]\
         .set_index("id", verify_integrity=True)
-
-    ip4 = pandas.read_csv("Downloads/GeoLite2-Country-CSV_20180911/GeoLite2-Country-Blocks-IPv4.csv")
+    ip4 = pandas.read_csv(os.path.join(path, "GeoLite2-Country-Blocks-IPv4.csv"))
     ip = ip4.reset_index().rename(columns={"geoname_id": "id"})[["network", "id"]].set_index("network")
     ip = ip[~ip.id.isna()]
     ip["id"] = ip.id.apply(int)
-
     all = ip.join(ff, on="id", how="left")[["code", "name"]]
-    all.to_csv("geolite-ip-country.csv")
+    return all.reset_index()
 
 
 template = """#!/usr/bin/env python

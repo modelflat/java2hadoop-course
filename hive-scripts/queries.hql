@@ -47,7 +47,7 @@ ORDER BY count_purchased
 LIMIT 10
 ;
 
--- Top ten (three, due to low variance in original dataset) products in each category
+-- Top ten products in each category
 SELECT category, name
 FROM (
     SELECT temp.name AS name, temp.category AS category,
@@ -58,7 +58,7 @@ FROM (
         GROUP BY name, category
     ) AS temp
 ) AS t
-WHERE rank_ <= 3
+WHERE rank_ <= 10
 ;
 
 -- Top ten countries by money spent (with UDF)
