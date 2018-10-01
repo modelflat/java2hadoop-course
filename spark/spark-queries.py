@@ -1,52 +1,66 @@
 from pyspark import SparkContext
-from pyspark.sql.session import SparkSession
+from pyspark.sql import HiveContext, SQLContext, Row
 
 
-spark = SparkSession(
-    SparkContext()
-)
+sc = SparkContext()
+sc.setLogLevel("WARN")
 
+sqlContext = SQLContext(sc) # No Hive context == no ROW_NUMBER :(
 
-from pyspark.sql.functions import col, lit, rank, udf, sum as spark_sum
+from pyspark.sql.functions import col, lit, row_number, udf, sum as spark_sum
 from pyspark.sql.types import StringType, IntegerType
 from pyspark.sql.window import Window
-import numpy
+
+# Compatibility with Spark 1.6
+rdd = sc.sequenceFile("hdfs:///flume/events/**").map(
+    lambda x: Row(*x[1].split(","))
+)
+
+df = sqlContext.createDataFrame(rdd, ["date", "ip", "category", "name", "price"]).cache()
 
 
-df = spark.read\
-    .format("csv")\
-    .option("header", "false")\
-    .schema("ts TIMESTAMP, ip STRING, category STRING, name STRING, price FLOAT")\
-    .load("events.csv")
+def write_to_mysql(df, table):
+    return df.write.format("jdbc").options(
+        url = 'jdbc:mysql://localhost/results',
+        driver = 'com.mysql.jdbc.Driver',
+        dbtable=table,
+        user='root'
+    ).mode("append").write()
+
 
 # top 10 categories
-df\
+top_categories = df\
     .groupBy("category")\
     .count()\
-    .limit(10)\
-    .show()
+    .orderBy(col("count").desc()) \
+    .limit(10)
+top_categories.show()
 
+write_to_mysql(top_categories, "top_categories")
 
 # top 10 products in categories
-df\
+top_products = df\
     .groupBy("category", "name")\
     .count()\
     .orderBy(col("category").asc(),
              col("count").desc())\
     .withColumn("rank",
-                rank().over(
+                row_number().over(
                     Window
                         .partitionBy("category")
                         .orderBy(col("count").desc())
                 ))\
-    .where(col("rank") <= lit(10))\
-    .show()
+    .where(col("rank") <= lit(10))
+top_products.show()
+
+write_to_mysql(top_products, "top_products")
 
 # top 10 countries by money spent
 # part 1: setup UDF like in Hive
 def make_udfs():
+    import ctypes
+
     def ip2num(ip):
-        import ctypes
         a, b, c, d = map(int, ip.split("."))
         return ctypes.c_uint32((a << 24) | (b << 16) | (c << 8) | d).value
 
@@ -58,17 +72,25 @@ def make_udfs():
 
     net2num_udf = udf(net2num, IntegerType())
 
-    geodata = spark.read \
-        .format("csv") \
-        .option("header", "true") \
-        .option("inferSchema", "true") \
-        .load("geodata.csv") \
-        .select(net2num_udf(col("network")).alias("network"), col("name").alias("country")) \
-        .toPandas() # because it fits on one machine
+    # geodata = spark.read \
+    #     .format("csv") \
+    #     .option("header", "true") \
+    #     .option("inferSchema", "true") \
+    #     .load("geodata.csv") \
+    #     .select(net2num_udf(col("network")).alias("network"), col("name").alias("country")) \
+    #     .toPandas() # because it fits on one machine
 
-    ips_broadcast, names_broadcast = \
-        spark.sparkContext.broadcast(geodata.network.values.astype(numpy.uint32)), \
-        spark.sparkContext.broadcast(geodata.country.values)
+    geodata_rdd = sc.textFile("hdfs:///geodata.csv").map(lambda x: x.split(",", 1))
+
+    # convert to DF to apply UDF
+    geodata = sqlContext.createDataFrame(geodata_rdd, ["network", "name"]) \
+        .select(net2num_udf(col("network")).alias("network"), col("name").alias("country")) \
+        .cache()
+
+    network_values = geodata.rdd.map(lambda r: ctypes.c_uint32(r["network"]).value).collect()
+    country_values = geodata.rdd.map(lambda r: r["country"]).collect()
+
+    ips_broadcast, names_broadcast = sc.broadcast(network_values), sc.broadcast(country_values)
 
     def ip2country(ip):
         # do work analogous to Hive version. the only difference is that in spark we can make use of shared variables
@@ -83,11 +105,15 @@ def make_udfs():
 ip2country = make_udfs()
 
 # part 2: write simple query
-df\
+top_countries = df \
     .select(col("price"), ip2country(col("ip")).alias("country"))\
     .cache()\
     .groupBy("country")\
     .agg(spark_sum(col("price")).alias("total"))\
     .orderBy(col("total").desc())\
-    .limit(10)\
-    .show()
+    .limit(10)
+top_countries.show()
+
+write_to_mysql(top_countries, "top_countries")
+
+

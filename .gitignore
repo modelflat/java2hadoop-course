@@ -9,3 +9,6 @@ __pycache__/
 
 *.class
 *.jar
+
+metastore_db/
+derby.log

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-mysql --user=root -s < create-sqoop-db.sql
-
 ../hive-scripts/run-queries.sh
 
 sqoop export \

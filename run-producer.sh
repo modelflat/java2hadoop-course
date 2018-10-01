@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
-while true
+size=${1:-1000}
+slp=${2:-10}
+count=${3:-0}
+
+pushd `dirname $0`/events >/dev/null
+while :
 do
     ./producer.bin $1 | nc localhost 44444 >/dev/null
     sleep $2
 done
+popd

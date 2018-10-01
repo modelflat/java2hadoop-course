@@ -2,7 +2,7 @@ SET hive.cli.print.header = true;
 SET hive.execution.engine = spark;
 
 -- Register our udf (we will need it later)
-ADD FILE 'gen/udf_ip_to_location.py';
+ADD FILE gen/udf_ip_to_location.py;
 
 -- Create table from flume events
 CREATE EXTERNAL TABLE IF NOT EXISTS purchases(
@@ -18,6 +18,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS purchases(
 MSCK REPAIR TABLE purchases;
 
 -- Top ten categories purchased
+CREATE TABLE top_categories AS
 SELECT COUNT(*) AS count_purchased, category
 FROM purchases
 GROUP BY CATEGORY
@@ -26,6 +27,7 @@ LIMIT 10
 ;
 
 -- Top ten products in each category
+CREATE TABLE top_products AS
 SELECT category, name
 FROM (
     SELECT temp.name AS name, temp.category AS category,
@@ -40,6 +42,7 @@ WHERE rank_ <= 10
 ;
 
 -- Top ten countries by money spent (with UDF)
+CREATE TABLE top_countries AS
 SELECT SUM(price) as total, country
 FROM purchases LEFT JOIN (
         SELECT TRANSFORM (ip) USING 'udf_ip_to_location.py' AS ip, country FROM purchases
