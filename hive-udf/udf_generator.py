@@ -79,5 +79,5 @@ def generate_ip_udf(udf_source_filename, geo_ip_filename, output_filename):
 generate_ip_udf(
     udf_source_filename="udf_ip.py",
     geo_ip_filename="~/GeoLite_Network2Country_Numerical.csv",
-    output_filename="../gen/udf_ip_to_location.py"
+    output_filename="../hive-scripts/gen/udf_ip_to_location.py"
 )
