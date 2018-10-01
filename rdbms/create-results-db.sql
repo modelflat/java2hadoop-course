@@ -7,9 +7,9 @@ CREATE TABLE hive_top_categories (
 );
 DROP TABLE IF EXISTS spark_top_categories;
 CREATE TABLE spark_top_categories (
+--    id INT NOT NULL AUTO_INCREMENT,
     category VARCHAR(64), count_ INT
 );
-
 
 DROP TABLE IF EXISTS hive_top_products;
 CREATE TABLE hive_top_products (

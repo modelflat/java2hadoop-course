@@ -5,7 +5,7 @@ from pyspark.sql import HiveContext, SQLContext, Row
 sc = SparkContext()
 sc.setLogLevel("WARN")
 
-sqlContext = SQLContext(sc) # No Hive context == no ROW_NUMBER :(
+sqlContext = HiveContext(sc) # No Hive context == no ROW_NUMBER :(
 
 from pyspark.sql.functions import col, lit, row_number, udf, sum as spark_sum
 from pyspark.sql.types import StringType, IntegerType
@@ -21,11 +21,11 @@ df = sqlContext.createDataFrame(rdd, ["date", "ip", "category", "name", "price"]
 
 def write_to_mysql(df, table):
     return df.write.format("jdbc").options(
-        url = 'jdbc:mysql://localhost/results',
-        driver = 'com.mysql.jdbc.Driver',
+        url='jdbc:mysql://localhost/results',
+        driver='com.mysql.jdbc.Driver',
         dbtable=table,
         user='root'
-    ).mode("append").write()
+    ).mode("overwrite").save()
 
 
 # top 10 categories
@@ -36,7 +36,7 @@ top_categories = df\
     .limit(10)
 top_categories.show()
 
-write_to_mysql(top_categories, "top_categories")
+write_to_mysql(top_categories, "spark_top_categories")
 
 # top 10 products in categories
 top_products = df\
@@ -53,7 +53,7 @@ top_products = df\
     .where(col("rank") <= lit(10))
 top_products.show()
 
-write_to_mysql(top_products, "top_products")
+write_to_mysql(top_products, "spark_top_products")
 
 # top 10 countries by money spent
 # part 1: setup UDF like in Hive
@@ -114,6 +114,6 @@ top_countries = df \
     .limit(10)
 top_countries.show()
 
-write_to_mysql(top_countries, "top_countries")
+write_to_mysql(top_countries, "spark_top_countries")
 
 
