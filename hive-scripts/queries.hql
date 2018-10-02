@@ -25,6 +25,7 @@ GROUP BY CATEGORY
 ORDER BY count_purchased
 LIMIT 10
 ;
+SELECT * FROM top_categories LIMIT 10;
 
 -- Top ten products in each category
 CREATE TABLE top_products AS
@@ -40,6 +41,7 @@ FROM (
 ) AS t
 WHERE rank_ <= 10
 ;
+SELECT * FROM top_products LIMIT 10;
 
 -- Top ten countries by money spent (with UDF)
 CREATE TABLE top_countries AS
@@ -52,4 +54,4 @@ GROUP BY country
 ORDER BY total DESC
 LIMIT 10
 ;
-
+SELECT * FROM top_countries LIMIT 10;

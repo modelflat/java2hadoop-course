@@ -20,12 +20,14 @@ df = sqlContext.createDataFrame(rdd, ["date", "ip", "category", "name", "price"]
 
 
 def write_to_mysql(df, table):
-    return df.write.format("jdbc").options(
-        url='jdbc:mysql://localhost/results',
-        driver='com.mysql.jdbc.Driver',
-        dbtable=table,
-        user='root'
-    ).mode("overwrite").save()
+    return df.write.jdbc(
+        url="jdbc:mysql://localhost:3306/results",
+        table=table,
+        mode="overwrite",
+        properties={
+            "user": "root"
+        }
+    )
 
 
 # top 10 categories
