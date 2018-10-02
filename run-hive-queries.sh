@@ -3,8 +3,8 @@
 this_script="`pwd`/`dirname $0`"
 
 pushd ${this_script}/hive-scripts >/dev/null
+
+chmod +x gen/udf_ip_to_location.py
+
 hive -f 'queries.hql'
 popd
-
-echo "Hive queries are done! Now running Sqoop export"
-./run-sqoop-export.sh
