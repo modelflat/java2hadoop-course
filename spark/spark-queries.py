@@ -29,33 +29,32 @@ def write_to_mysql(df, table):
         }
     )
 
+# top 10 categories
+top_categories = df\
+    .groupBy("category")\
+    .count()\
+    .orderBy(col("count").desc()) \
+    .limit(10)
+top_categories.show()
 
-# # top 10 categories
-# top_categories = df\
-#     .groupBy("category")\
-#     .count()\
-#     .orderBy(col("count").desc()) \
-#     .limit(10)
-# top_categories.show()
-#
-# write_to_mysql(top_categories, "spark_top_categories")
-#
-# # top 10 products in categories
-# top_products = df\
-#     .groupBy("category", "name")\
-#     .count()\
-#     .orderBy(col("category").asc(),
-#              col("count").desc())\
-#     .withColumn("rank",
-#                 row_number().over(
-#                     Window
-#                         .partitionBy("category")
-#                         .orderBy(col("count").desc())
-#                 ))\
-#     .where(col("rank") <= lit(10))
-# top_products.show()
-#
-# write_to_mysql(top_products, "spark_top_products")
+write_to_mysql(top_categories, "spark_top_categories")
+
+# top 10 products in categories
+top_products = df\
+    .groupBy("category", "name")\
+    .count()\
+    .orderBy(col("category").asc(),
+             col("count").desc())\
+    .withColumn("rank",
+                row_number().over(
+                    Window
+                        .partitionBy("category")
+                        .orderBy(col("count").desc())
+                ))\
+    .where(col("rank") <= lit(10))
+top_products.show()
+
+write_to_mysql(top_products, "spark_top_products")
 
 # top 10 countries by money spent
 # part 1: setup UDF like in Hive

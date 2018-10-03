@@ -18,7 +18,6 @@ function cloudera-vm() {
 	    "head -n -1 /usr/bin/docker-quickstart >> /tmp/dqs.tmp; \
 	     echo 'service mysqld stop && (mysqld_safe --skip-grant-tables &); sleep 2 && echo && exec bash' >> /tmp/dqs.tmp; \
 	     mv /tmp/dqs.tmp usr/bin/docker-quickstart; chmod +x /usr/bin/docker-quickstart; cd /host; \
-	     yum install -y python-pip; pip install numpy==1.7.0 pandas==0.17.1; \
 	     /usr/bin/docker-quickstart
 	    "
 }
