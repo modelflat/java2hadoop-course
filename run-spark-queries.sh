@@ -2,4 +2,4 @@
 
 hdfs dfs -put geodata.csv /
 
-spark-submit --master local spark/spark-queries.py
+spark-submit --master yarn spark/spark-queries.py

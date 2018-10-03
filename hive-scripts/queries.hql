@@ -33,12 +33,13 @@ DROP TABLE IF EXISTS top_products;
 CREATE TABLE top_products STORED AS ORC AS
 SELECT * FROM
 (
-    SELECT temp.name AS name, temp.category AS category, temp.count_purchased as count_,
+    SELECT temp.category AS category, temp.name AS name, temp.count_purchased as count_,
         ROW_NUMBER() OVER (PARTITION BY temp.category ORDER BY temp.count_purchased DESC) AS rank_
     FROM (
         SELECT COUNT(*) AS count_purchased, name, category
         FROM purchases
-        GROUP BY name, category
+        GROUP BY category, name
+        ORDER BY category ASC, name ASC, count_purchased DESC
     ) AS temp
 ) AS t
 WHERE rank_ <= 10

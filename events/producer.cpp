@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <random>
 #include <string>
 #include <ctime>
@@ -82,7 +83,7 @@ std::ostream& operator<<(std::ostream& stream, const Event& event) {
 	stream << (int)event.ip_c[1] << '.';
 	stream << (int)event.ip_c[2] << '.';
 	stream << (int)event.ip_c[3];
-	stream << SEP << event.category << SEP << event.name << SEP << event.price;
+	stream << SEP << event.category << SEP << event.name << SEP << std::setprecision(2) << event.price;
 	return stream;
 }
 

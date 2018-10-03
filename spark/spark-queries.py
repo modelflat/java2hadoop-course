@@ -43,8 +43,7 @@ write_to_mysql(top_categories, "spark_top_categories")
 top_products = df\
     .groupBy("category", "name")\
     .count()\
-    .orderBy(col("category").asc(),
-             col("count").desc())\
+    .orderBy(col("category").asc(), col("name").asc(), col("count").desc())\
     .withColumn("rank",
                 row_number().over(
                     Window
@@ -59,7 +58,7 @@ write_to_mysql(top_products, "spark_top_products")
 # top 10 countries by money spent
 # part 1: setup UDF like in Hive
 def make_udfs():
-    import ctypes, numpy
+    import ctypes
 
     def ip2num(ip):
         a, b, c, d = map(int, ip.split("."))
