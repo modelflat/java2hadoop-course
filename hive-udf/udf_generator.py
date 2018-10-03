@@ -35,7 +35,7 @@ name_map={name_map}
 
 
 def pack_ip_data(filename):
-    ips = pandas.read_csv(filename)
+    ips = pandas.read_csv(filename, header=None).rename(columns={0: "network", 1: "name"})
     ips = ips[~ips.name.isna()]
     name_index = dict(t[::-1] for t in enumerate(ips.name.unique()))
     ips["network"] = ips.network.apply(lambda x: utils.mask_str2num(x).value)
@@ -78,6 +78,6 @@ def generate_ip_udf(udf_source_filename, geo_ip_filename, output_filename):
 
 generate_ip_udf(
     udf_source_filename="udf_ip.py",
-    geo_ip_filename="~/GeoLite_Network2Country_Numerical.csv",
+    geo_ip_filename="../geodata.csv",
     output_filename="../hive-scripts/gen/udf_ip_to_location.py"
 )
