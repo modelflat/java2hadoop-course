@@ -39,10 +39,10 @@ SELECT * FROM
         SELECT COUNT(*) AS count_purchased, name, category
         FROM purchases
         GROUP BY category, name
-        ORDER BY category ASC, name ASC, count_purchased DESC
     ) AS temp
 ) AS t
 WHERE rank_ <= 10
+ORDER BY category ASC, name ASC, count_ DESC
 ;
 SELECT * FROM top_products LIMIT 10;
 
@@ -56,6 +56,5 @@ FROM purchases LEFT JOIN (
     ON t.ip = purchases.ip
 GROUP BY country
 ORDER BY total DESC
-LIMIT 10
 ;
 SELECT * FROM top_countries LIMIT 10;

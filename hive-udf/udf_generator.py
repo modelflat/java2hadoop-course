@@ -40,6 +40,7 @@ def pack_ip_data(filename):
     name_index = dict(t[::-1] for t in enumerate(ips.name.unique()))
     ips["network"] = ips.network.apply(lambda x: utils.mask_str2num(x).value)
     ips["name"] = ips.name.apply(lambda x: name_index[x])
+    ips = ips.set_index("network").sort_index().reset_index()
     o = ips.values.T
     conv = lambda x: np.uint32(x).tobytes()
     return utils.iter2base(o[0], conv), utils.iter2base(o[1], conv), name_index
